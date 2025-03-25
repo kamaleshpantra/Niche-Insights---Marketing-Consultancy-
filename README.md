@@ -17,11 +17,11 @@
 ## Screenshots
 
 ### Responses Generated in Streamlit
-![Streamlit Responses](screenshots/streamlit_responses.png)  
+![Streamlit Responses](Screenshots/Marketing_Responses.png)  
 *Caption: Example of Reddit posts with generated responses displayed in the Streamlit UI.*
 
 ### Topic Distribution Visualization
-![Topic Distribution](screenshots/topic_distribution.png)  
+![Topic Distribution](screenshots/Visuvalization.png)  
 *Caption: Pie chart showing the distribution of topics identified in the fetched posts.*
 
 ## Prerequisites
