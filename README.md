@@ -21,7 +21,7 @@
 *Caption: Example of Reddit posts with generated responses displayed in the Streamlit UI.*
 
 ### Topic Distribution Visualization
-![Topic Distribution](screenshots/Visuvalization.png)  
+![Topic Distribution](Screenshots/Visuvalization.png)  
 *Caption: Pie chart showing the distribution of topics identified in the fetched posts.*
 
 ## Prerequisites
