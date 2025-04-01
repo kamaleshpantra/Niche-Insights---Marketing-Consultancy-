@@ -1,4 +1,3 @@
-details.env
 slack_failures.log
 __pycache__/
 *.pyc
