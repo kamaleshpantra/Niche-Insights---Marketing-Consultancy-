@@ -76,10 +76,12 @@ def classify_text(text):
 # Generate response (Hugging Face with fallback)
 def generate_response(post, topic):
     base_response = " ".join([COMPANY_KNOWLEDGE.get(t, "Engage with us for AI insights.") for t in topic])
+    blog_snippet = "Our recent article on SaaS optimization highlights AI-driven efficiency gains."
     prompt = (
         f"Respond as an AI for niche community engagement on Reddit: '{post['title']} {post['body'][:200]}'. "
-        f"Use this context: {base_response} Focus on SaaS, AI, marketing, or tech, emphasizing thought leadership. "
-        "Keep it concise and professional."
+        f"Use this context: {base_response} Company insight: {blog_snippet} "
+        f"Focus on SaaS, AI, marketing, or tech, emphasizing thought leadership. "
+        f"Maintain a professional, friendly tone consistent with a tech-savvy marketing consultancy."
     )
     try:
         response = call_huggingface_api(prompt)[:1000]
@@ -88,8 +90,8 @@ def generate_response(post, topic):
     except Exception as e:
         logging.error(f"Response Generation Error: {str(e)}")
         fallback_response = (
-            f"Thanks for sharing '{post['title']}'! {base_response} "
-            "Our latest blog highlights how AI can enhance your work in this area—check it out!"
+            f"Thanks for sharing '{post['title']}'! {base_response} {blog_snippet} "
+            "Visit our blog for more insights!"
         )
         logging.info(f"Falling back to static response: {fallback_response[:100]}...")
         return fallback_response

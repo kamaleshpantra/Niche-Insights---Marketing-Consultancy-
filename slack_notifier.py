@@ -12,10 +12,9 @@ def send_to_slack(post, response, max_retries=3, delay=5, real_time=False):
         "blocks": [
             {"type": "header", "text": {"type": "plain_text", "text": f"Niche Opportunity: {sanitized_title}"}},
             {"type": "section", "text": {"type": "mrkdwn", "text": f"*Title:*\n{sanitized_title}\n*Body:*\n>{sanitized_body}\n*Suggested Response:*\n>{sanitized_response}"}},
-            {"type": "section", "text": {"type": "mrkdwn", "text": "*Action Required:* Approve or reject this response"}},
             {"type": "actions", "elements": [
-                {"type": "button", "action_id": "approve", "text": {"type": "plain_text", "text": "Approve 🌠"}, "style": "primary", "value": "approve"},
-                {"type": "button", "action_id": "reject", "text": {"type": "plain_text", "text": "Reject ⚠️"}, "style": "danger", "value": "reject"}
+                {"type": "button", "action_id": f"approve_{post['id']}", "text": {"type": "plain_text", "text": "Approve 🌠"}, "style": "primary", "value": sanitized_response},
+                {"type": "button", "action_id": f"reject_{post['id']}", "text": {"type": "plain_text", "text": "Reject ⚠️"}, "style": "danger", "value": "reject"}
             ]}
         ]
     }
@@ -30,7 +29,7 @@ def send_to_slack(post, response, max_retries=3, delay=5, real_time=False):
             if attempt < max_retries - 1:
                 time.sleep(delay)
             else:
-                with open("slack_failures.log", "a") as f:
+                with open("slack_failures.log", "a", encoding="utf-8") as f:
                     f.write(f"Failed at {datetime.now()}: Title='{sanitized_title}', Body='{sanitized_body}', Response='{sanitized_response}'\n")
                 return "Slack send failed (Logged locally)"
     return "Slack send failed"

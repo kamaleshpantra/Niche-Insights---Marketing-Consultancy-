@@ -1,6 +1,6 @@
 import praw
 import requests
-from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT, HUGGINGFACE_API_KEY, logging
+from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT, HUGGINGFACE_API_KEY, HUGGINGFACE_MODEL, logging
 import backoff
 
 # Reddit API Client
@@ -24,9 +24,9 @@ reddit = init_reddit()
 def call_huggingface_api(prompt, timeout=60):
     headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}", "Content-Type": "application/json"}
     try:
-        logging.info(f"Sending request to Hugging Face API with prompt: {prompt[:100]}...")
+        logging.info(f"Sending request to Hugging Face API with model: {HUGGINGFACE_MODEL} and prompt: {prompt[:100]}...")
         response = requests.post(
-            "https://api-inference.huggingface.co/models/mixtralai/Mixtral-8x7B-Instruct-v0.1",
+            f"https://api-inference.huggingface.co/models/{HUGGINGFACE_MODEL}",
             headers=headers,
             json={"inputs": prompt},
             timeout=timeout
