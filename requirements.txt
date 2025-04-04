@@ -1,0 +1,9 @@
+streamlit==1.33.0
+pandas==2.2.2
+plotly==5.22.0
+praw==7.7.1
+requests==2.31.0
+python-dotenv==1.0.1
+textblob==0.18.0.post0
+backoff==2.2.1
+numpy==1.26.4
