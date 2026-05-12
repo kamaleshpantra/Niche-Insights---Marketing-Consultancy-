@@ -59,16 +59,30 @@ def preprocess_text(text):
     return text.strip().lower()
 
 def classify_text(text):
-    keywords = {
-        "CI/CD": ["ci/cd", "pipeline", "deployment", "automation", "tech"],
-        "Database": ["database", "db", "scaling", "storage", "saas"],
-        "Auth": ["authentication", "auth", "security", "microservices", "platform"],
-        "Marketing": ["marketing", "campaign", "audience", "engagement", "community", "niche"],
-        "SaaS": ["saas", "software", "service", "platform", "niche", "tech"],
-    }
-    text_lower = preprocess_text(text[:MAX_TEXT_LENGTH])
-    matched_topics = [t for t, kw in keywords.items() if any(k in text_lower for k in kw)]
-    return matched_topics or ["Other"]
+    prompt = (
+        f"Classify the following text into one or more of these categories: [CI/CD, Database, Auth, Marketing, SaaS, AI, Growth, Other]. "
+        f"Return ONLY a comma-separated list of categories. "
+        f"Text: '{text[:500]}'"
+    )
+    try:
+        response = call_huggingface_api(prompt)
+        # Extract categories from response
+        categories = ["CI/CD", "Database", "Auth", "Marketing", "SaaS", "AI", "Growth"]
+        matched = [c for c in categories if c.lower() in response.lower()]
+        return matched if matched else ["Other"]
+    except Exception as e:
+        logging.error(f"LLM Classification Error: {e}")
+        # Fallback to simple keyword matching if API fails
+        keywords = {
+            "CI/CD": ["ci/cd", "pipeline", "deployment"],
+            "Database": ["database", "db", "scaling"],
+            "Auth": ["authentication", "auth", "security"],
+            "Marketing": ["marketing", "engagement", "niche"],
+            "SaaS": ["saas", "software"],
+        }
+        text_lower = text.lower()
+        matched_topics = [t for t, kw in keywords.items() if any(k in text_lower for k in kw)]
+        return matched_topics or ["Other"]
 
 def generate_response(post, topic):
     base_response = " ".join([COMPANY_KNOWLEDGE.get(t, "Engage with us for AI insights.") for t in topic])

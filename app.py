@@ -6,7 +6,11 @@ from src.core.config import DEFAULT_SUBREDDIT, MONITOR_INTERVAL, logging
 from src.core.processor import fetch_reddit_posts, classify_text, generate_response
 from src.integrations.slack import send_to_slack
 from src.core.analytics import calculate_engagement_metrics, analyze_sentiment
+from src.core.database import init_db, save_post_to_db, get_all_posts
 import time
+
+# Initialize Database
+init_db()
 
 def main():
     st.set_page_config(page_title="Niche Insights | Marketing Consultancy", layout="wide", page_icon="🧩")
@@ -27,7 +31,16 @@ def main():
     st.write("Uncover actionable insights from niche communities with AI-driven analysis and storytelling.")
 
     if "data" not in st.session_state:
+        # Load historical data from database
+        history = get_all_posts()
         st.session_state.data = []
+        for post in history:
+            st.session_state.data.append({
+                "id": post.id, "Title": post.title, "Body": post.body, "Topic": post.topic,
+                "AI Response": post.ai_response, "Sentiment": post.sentiment, "Response Quality": post.response_quality if hasattr(post, 'response_quality') else 0.8,
+                "Impact Score": post.impact_score, "Conversion Potential": post.conversion_potential, "Slack Status": post.slack_status,
+                "Post Score": post.score, "Comment Count": post.num_comments, "Reach": post.reach, "URL": post.url
+            })
         st.session_state.last_update = 0
 
     # Input Section
@@ -53,11 +66,19 @@ def main():
                 ai_response = generate_response(post, topic)
                 quality, impact, sentiment, conversion, reach = calculate_engagement_metrics(ai_response, full_text, post['url'], post['score'], post['num_comments'])
                 slack_status = send_to_slack(post, ai_response)
-                st.session_state.data.append({
-                    "Title": post['title'], "Body": post['body'], "Topic": ", ".join(topic),
+                post_data = {
+                    "id": post['id'], "title": post['title'], "body": post['body'], "topic": ", ".join(topic),
+                    "ai_response": ai_response, "sentiment": sentiment,
+                    "impact_score": impact, "conversion_potential": conversion, "slack_status": slack_status,
+                    "score": post['score'], "num_comments": post['num_comments'], "reach": reach, "url": post['url']
+                }
+                save_post_to_db(post_data)
+                
+                st.session_state.data.insert(0, {
+                    "id": post['id'], "Title": post['title'], "Body": post['body'], "Topic": ", ".join(topic),
                     "AI Response": ai_response, "Sentiment": sentiment, "Response Quality": quality,
                     "Impact Score": impact, "Conversion Potential": conversion, "Slack Status": slack_status,
-                    "Post Score": post['score'], "Comment Count": post['num_comments'], "Reach": reach
+                    "Post Score": post['score'], "Comment Count": post['num_comments'], "Reach": reach, "URL": post['url']
                 })
             st.session_state.last_update = time.time()
 
@@ -133,6 +154,27 @@ def main():
                     <strong>Slack Status:</strong> {row["Slack Status"]}
                 </div>
             ''', unsafe_allow_html=True)
+
+    # Sidebar for Export and Settings (At the end to ensure all variables like 'subreddit' are defined)
+    with st.sidebar:
+        st.header("⚙️ App Settings & Export")
+        st.write("Manage your data and exports.")
+        
+        if st.session_state.data:
+            df_export = pd.DataFrame(st.session_state.data)
+            csv = df_export.to_csv(index=False).encode('utf-8')
+            # Use current subreddit for filename
+            st.download_button(
+                label="📥 Download Complete Report (CSV)",
+                data=csv,
+                file_name=f"niche_insights_{subreddit}.csv",
+                mime='text/csv',
+                help="Export all currently loaded insights to a CSV file for clients."
+            )
+        
+        if st.button("🗑️ Clear Cache"):
+            st.session_state.data = []
+            st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
